@@ -1,33 +1,67 @@
 package com.ut.kranti.user;
 
 import java.util.List;
+import java.util.Set;
 
+import com.ut.kranti.event.Event;
 import com.ut.kranti.follower.Follower;
 import com.ut.kranti.user.post.Post;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name="UserProfile")
 public class UserProfile {
     @Id
     private Long id;
     private String username;
     private String email;
     private String bio;
+    @Column(name="profilepicture")
     private String profilePicture;
+    @Column(nullable = false)
+    private String password;
+    public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	
     
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private List<Post> posts;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Follower> followers;
+    @OneToMany(mappedBy = "follower", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Follower> followers; // Users following this user
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Follower> following;
+    @OneToMany(mappedBy = "following", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Follower> following; // Users this user is following
 
+    @ManyToMany
+    @JoinTable(
+        name = "event_hosts",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "event_id")
+    )
+    private Set<Event> hostedEvents; // Events this user is hosting
+
+    @ManyToMany
+    @JoinTable(
+        name = "event_followers",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "event_id")
+    )
+    private Set<Event> followedEvents;
 	public Long getId() {
 		return id;
 	}
@@ -76,4 +110,5 @@ public class UserProfile {
 	public void setFollowing(List<Follower> following) {
 		this.following = following;
 	}
+	
 }

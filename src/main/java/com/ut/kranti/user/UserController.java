@@ -2,21 +2,24 @@ package com.ut.kranti.user;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+	@Autowired
+    private  UserService userService;
 
-    private final UserService userService;
+	@PostMapping("/login")
+    public String login(@RequestBody UserProfile user) {
 
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
+        return userService.verify(user);
     }
 
     /**
@@ -24,14 +27,15 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
-        UserDto user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
-    }
+    	System.out.println("hello");
+    	Optional<UserDto> user = userService.getUserById(id);
+        return user.map(ResponseEntity::ok) // If user is present, return 200 OK with user data
+                   .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));    }
 
     /**
      * Get all users.
      */
-    @GetMapping
+    @GetMapping("/allusers")
     public ResponseEntity<List<UserDto>> getAllUsers() {
         List<UserDto> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
@@ -40,9 +44,10 @@ public class UserController {
     /**
      * Create a new user.
      */
-    @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
-        UserDto createdUser = userService.createUser(userDto);
+    @PostMapping("/register")
+    public ResponseEntity<UserDto> createUser(@RequestBody UserProfile userDto) {
+    	
+        UserDto createdUser = userService.saveUser(userDto);
         return ResponseEntity.ok(createdUser);
     }
 
@@ -64,30 +69,29 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Search users by name.
-     */
+    
+     //Search users by name.
+     
     @GetMapping("/search")
     public ResponseEntity<List<UserDto>> searchUsers(@RequestParam String name) {
         List<UserDto> users = userService.searchUsersByName(name);
         return ResponseEntity.ok(users);
     }
 
-    /**
-     * Follow a user.
-     */
+    
+     //Follow a user.
+     
     @PostMapping("/{id}/follow")
     public ResponseEntity<String> followUser(@PathVariable Long id, @RequestParam Long followerId) {
         userService.followUser(id, followerId);
-        return ResponseEntity.ok("Followed user successfully");
+        return ResponseEntity.ok("Requested");
     }
-
-    /**
-     * Unfollow a user.
-     */
+    
+/*
+    
     @DeleteMapping("/{id}/unfollow")
     public ResponseEntity<String> unfollowUser(@PathVariable Long id, @RequestParam Long followerId) {
         userService.unfollowUser(id, followerId);
         return ResponseEntity.ok("Unfollowed user successfully");
-    }
+    }*/
 }

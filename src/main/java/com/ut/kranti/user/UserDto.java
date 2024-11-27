@@ -1,5 +1,6 @@
 package com.ut.kranti.user;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -9,14 +10,31 @@ public class UserDto {
 
     @NotBlank
     @Size(min = 3, max = 50)
-    private String name;
+    private String username;
 
     @Email
     private String email;
 
     private String bio;
+    @Column(nullable = false)
+    private String password;
+    public String getUsername() {
+		return username;
+	}
 
-    // Getters and Setters
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	// Getters and Setters
     public Long getId() {
         return id;
     }
@@ -26,11 +44,11 @@ public class UserDto {
     }
 
     public String getName() {
-        return name;
+        return username;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.username = name;
     }
 
     public String getEmail() {

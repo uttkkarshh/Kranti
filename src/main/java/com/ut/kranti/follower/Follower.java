@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 
 import com.ut.kranti.user.UserProfile;
 
+
 import jakarta.persistence.Entity;
+
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -27,9 +29,9 @@ public class Follower {
     private UserProfile following;
 
     private LocalDateTime followDate;
-
-    private String status;
-
+    
+   
+  
 	public Long getId() {
 		return id;
 	}
@@ -62,11 +64,6 @@ public class Follower {
 		this.followDate = followDate;
 	}
 
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	} 
+	
+	
 }
