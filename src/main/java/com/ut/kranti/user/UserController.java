@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.ut.kranti.follower.FollowerService;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -15,9 +17,10 @@ import java.util.Optional;
 public class UserController {
 	@Autowired
     private  UserService userService;
-
+	  @Autowired
+	    private FollowerService followerService;
 	@PostMapping("/login")
-    public String login(@RequestBody UserProfile user) {
+    public ResponseEntity<?> login(@RequestBody UserProfile user) {
 
         return userService.verify(user);
     }
@@ -27,7 +30,7 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
-    	System.out.println("hello");
+    	
     	Optional<UserDto> user = userService.getUserById(id);
         return user.map(ResponseEntity::ok) // If user is present, return 200 OK with user data
                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));    }
@@ -77,16 +80,31 @@ public class UserController {
         List<UserDto> users = userService.searchUsersByName(name);
         return ResponseEntity.ok(users);
     }
-
+    @GetMapping("/user")
+    public ResponseEntity<UserDto> getUser(@RequestParam String name) {
+        UserProfile users = userService.findByUsername(name);
+        return ResponseEntity.ok(UserMapper.toDto(users));
+    }
     
      //Follow a user.
      
     @PostMapping("/{id}/follow")
     public ResponseEntity<String> followUser(@PathVariable Long id, @RequestParam Long followerId) {
+    	
         userService.followUser(id, followerId);
         return ResponseEntity.ok("Requested");
     }
-    
+    @PostMapping("/followapprove")
+    public ResponseEntity<String> approveFollowRequest( @RequestParam Long requestId) {
+        followerService.approveFollowRequest(requestId);
+        return ResponseEntity.ok("Follow request approved.");
+    }
+
+    @PostMapping("/{id}/followreject")
+    public ResponseEntity<String> rejectFollowRequest(@PathVariable Long id, @RequestParam Long followerId) {
+        followerService.rejectFollowRequest(id, followerId);
+        return ResponseEntity.ok("Follow request rejected.");
+    }
 /*
     
     @DeleteMapping("/{id}/unfollow")

@@ -11,6 +11,8 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
@@ -22,11 +24,12 @@ import jakarta.persistence.Table;
 @Table(name="UserProfile")
 public class UserProfile {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // or GenerationType.AUTO
     private Long id;
     private String username;
     private String email;
     private String bio;
-    @Column(name="profilepicture")
+    @Column(columnDefinition = "TEXT",name="profilepicture")
     private String profilePicture;
     @Column(nullable = false)
     private String password;

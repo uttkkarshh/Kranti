@@ -8,11 +8,15 @@ import org.springframework.web.bind.annotation.*;
 import com.ut.kranti.comments.Comment;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/posts")
+@RequestMapping("/api/posts")
 public class PostController {
     @Autowired
     private  PostService postService;
@@ -20,9 +24,10 @@ public class PostController {
     
 
     // 1. Create a Post
-    @PostMapping
-    public ResponseEntity<Post> createPost(@RequestBody PostDto postDto) {
-        Post createdPost = postService.createPost(postDto);
+    @PostMapping("/create")
+    public ResponseEntity<PostDto> createPost(@RequestBody PostDto postDto) {
+    	
+        PostDto createdPost = postService.createPost(postDto);
         return ResponseEntity.ok(createdPost);
     }
 
@@ -32,14 +37,19 @@ public class PostController {
         Post post = postService.getPostById(postId);
         return ResponseEntity.ok(post);
     }
-
+   
     // 3. Get All Posts
     @GetMapping
-    public ResponseEntity<List<Post>> getAllPosts() {
-        List<Post> posts = postService.getAllPosts();
+    public ResponseEntity<List<PostDto>> getAllPosts() {
+        List<PostDto> posts = postService.getAllPosts();
         return ResponseEntity.ok(posts);
     }
-
+    // 3. Get All Posts
+    @GetMapping("/postforuser/{id}")
+    public ResponseEntity<List<PostDto>> getPostsForUser(@PathVariable Long id) {
+        List<PostDto> posts = postService.getPostsFromFollowedUsers(id);
+        return ResponseEntity.ok(posts);
+    }
     // 4. Update a Post
     @PutMapping("/{postId}")
     public ResponseEntity<Post> updatePost(@PathVariable Long postId, @RequestBody PostDto postDto) {
@@ -91,8 +101,8 @@ public class PostController {
 
     // 11. Get Posts by User
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Post>> getPostsByUser(@PathVariable Long userId) {
-        List<Post> userPosts = postService.getPostsByUser(userId);
+    public ResponseEntity<List<PostDto>> getPostsByUser(@PathVariable Long userId) {
+        List<PostDto> userPosts = postService.getPostsByUser(userId);
         return ResponseEntity.ok(userPosts);
     }
 
@@ -102,4 +112,20 @@ public class PostController {
         List<Post> feedPosts = postService.getFeed();
         return ResponseEntity.ok(feedPosts);
     }
+    @GetMapping("/user/{userId}/posts")
+    public ResponseEntity<Page<PostDto>> getPostsByUser(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<PostDto> userPosts = postService.getPostsByUser(userId, pageable);
+        return ResponseEntity.ok(userPosts);
+    }
+
+
 }

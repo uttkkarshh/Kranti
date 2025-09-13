@@ -1,7 +1,7 @@
 package com.ut.kranti.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,11 +26,6 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("User not found");
         }
 
-        return User.builder()
-                .username(userEntity.getUsername())
-                .password(userEntity.getPassword())
-                .roles("user")
-                .disabled(false)
-                .build();
+        return new UserPrincipal(userEntity);
     }
 }

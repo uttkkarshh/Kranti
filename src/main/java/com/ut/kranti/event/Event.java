@@ -4,10 +4,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+import org.locationtech.jts.geom.Point;
+
 import com.ut.kranti.user.UserProfile;
 import com.ut.kranti.user.post.Post;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,7 +21,15 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 @Entity
 public class Event {
-	  @Id
+	  public Point getLocation() {
+		return location;
+	}
+
+	public void setLocation(Point location) {
+		this.location = location;
+	}
+
+	@Id
 	    @GeneratedValue(strategy = GenerationType.IDENTITY)
 	    private Long id;
 
@@ -29,7 +40,8 @@ public class Event {
 
 	    @ManyToMany(mappedBy = "hostedEvents")
 	    private Set<UserProfile> hosts; // Users hosting this event
-
+	    @Column(columnDefinition = "POINT")
+	    private Point location; // Location of the event (latitude and longitude)
 	    @ManyToMany
 	    @JoinTable(
 	        name = "event_followers",

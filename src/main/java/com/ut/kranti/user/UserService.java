@@ -2,11 +2,15 @@ package com.ut.kranti.user;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.ut.kranti.auth.JWTService;
+import com.ut.kranti.exception.ResourceNotFoundException;
 import com.ut.kranti.follower.FollowRequest;
 import com.ut.kranti.follower.FollowRequestRepository;
 
@@ -32,12 +37,17 @@ public class UserService {
 	    private FollowRequestRepository followRequestRepository;
 
 	    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-	   public String verify(UserProfile user) {
+	   public ResponseEntity<?> verify(UserProfile user) {
 	        Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
 	        if (authentication.isAuthenticated()) {
-	            return jwtService.generateToken(user.getUsername());
+	            String token = jwtService.generateToken(user.getUsername());
+	            Map<String, Object> response = new HashMap<>();
+	            UserDto userName=UserMapper.toDto(findByUsername(user.getUsername()));
+				response.put("user", userName);
+	            response.put("token", token);
+	            return ResponseEntity.ok(response);
 	        } else {
-	            return "fail";
+	        	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
 	        }
 	    }
   
@@ -81,17 +91,10 @@ public class UserService {
 	            .orElseThrow(() -> new EntityNotFoundException("User not found"));
 	}
 
-public UserProfile findByUsername(String username) {
-	
-Optional<UserProfile> user =userRepository.findByUsername(username);
-if(user.isPresent()) {
-	return user.get();
-}
-else {
-	return null;
-}
-	
-}
+	   public UserProfile findByUsername(String username) {
+	        return userRepository.findByUsername(username)
+	                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+	    }
 
 
 public List<UserDto> searchUsersByName(String name) {
@@ -111,7 +114,7 @@ public void followUser(Long userId, Long followerId) {
       // Step 2: Check if follow request already exists
       Optional<FollowRequest> existingRequest = followRequestRepository
               .findBySenderAndReceiver(follower, userToFollow);
-
+      
       if (existingRequest.isPresent()) {
           FollowRequest request = existingRequest.get();
           if (request.getStatus() == FollowRequest.RequestStatus.PENDING) {
@@ -130,6 +133,8 @@ public void followUser(Long userId, Long followerId) {
       
       followRequestRepository.save(followRequest);
   }
+
+
 
 
 
