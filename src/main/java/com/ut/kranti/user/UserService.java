@@ -37,20 +37,23 @@ public class UserService {
 	    private FollowRequestRepository followRequestRepository;
 
 	    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-	   public ResponseEntity<?> verify(UserProfile user) {
-	        Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+	    public Map<String, Object> verify(UserProfile user) {
+	        Authentication authentication = authManager.authenticate(
+	            new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
+	        );
+
 	        if (authentication.isAuthenticated()) {
 	            String token = jwtService.generateToken(user.getUsername());
+	            UserDto userDto = UserMapper.toDto(findByUsername(user.getUsername()));
+
 	            Map<String, Object> response = new HashMap<>();
-	            UserDto userName=UserMapper.toDto(findByUsername(user.getUsername()));
-				response.put("user", userName);
+	            response.put("user", userDto);
 	            response.put("token", token);
-	            return ResponseEntity.ok(response);
-	        } else {
-	        	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
+	            return response;
 	        }
+	        throw new RuntimeException("Authentication failed");
 	    }
-  
+
    
     // Get all users
     public List<UserDto> getAllUsers() {

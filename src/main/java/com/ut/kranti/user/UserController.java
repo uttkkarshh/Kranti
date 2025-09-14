@@ -19,11 +19,15 @@ public class UserController {
     private  UserService userService;
 	  @Autowired
 	    private FollowerService followerService;
-	@PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserProfile user) {
+	  @PostMapping("/login")
+	  public ResponseEntity<?> login(@RequestBody UserProfile user) {
+	      try {
+	          return ResponseEntity.ok(userService.verify(user));
+	      } catch (RuntimeException ex) {
+	          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+	      }
+	  }
 
-        return userService.verify(user);
-    }
 
     /**
      * Get user by ID.
