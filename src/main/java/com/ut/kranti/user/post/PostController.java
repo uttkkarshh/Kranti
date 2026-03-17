@@ -15,25 +15,31 @@ import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
+// logging
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/api/posts")
 public class PostController {
     @Autowired
     private  PostService postService;
 
-    
+    private static final Logger logger = LoggerFactory.getLogger(PostController.class);
 
     // 1. Create a Post
     @PostMapping("/create")
     public ResponseEntity<PostDto> createPost(@RequestBody PostDto postDto) {
-    	
+        logger.debug("createPost called by userId={}", postDto.getUserId());
         PostDto createdPost = postService.createPost(postDto);
+        logger.info("Post created id={} by userId={}", createdPost.getId(), postDto.getUserId());
         return ResponseEntity.ok(createdPost);
     }
 
     // 2. Get a Post by ID
     @GetMapping("/{postId}")
     public ResponseEntity<Post> getPostById(@PathVariable Long postId) {
+        logger.debug("getPostById called for postId={}", postId);
         Post post = postService.getPostById(postId);
         return ResponseEntity.ok(post);
     }
@@ -66,16 +72,20 @@ public class PostController {
 
     // 6. Like a Post
     @PostMapping("/{postId}/like")
-    public ResponseEntity<String> likePost(@PathVariable Long postId) {
-        postService.likePost(postId);
-        return ResponseEntity.ok("Post liked");
+    public ResponseEntity<LikeResponse> likePost(@PathVariable Long postId, @RequestParam Long userId) {
+        logger.debug("likePost called postId={} by userId={}", postId, userId);
+        LikeResponse response = postService.likePost(postId, userId);
+        logger.info("likePost result postId={} by userId={} success={} likesCount={}", postId, userId, response.isSuccess(), response.getLikesCount());
+        return ResponseEntity.ok(response);
     }
 
     // 7. Unlike a Post
     @PostMapping("/{postId}/unlike")
-    public ResponseEntity<String> unlikePost(@PathVariable Long postId) {
-        postService.unlikePost(postId);
-        return ResponseEntity.ok("Post unliked");
+    public ResponseEntity<LikeResponse> unlikePost(@PathVariable Long postId, @RequestParam Long userId) {
+        logger.debug("unlikePost called postId={} by userId={}", postId, userId);
+        LikeResponse response = postService.unlikePost(postId, userId);
+        logger.info("unlikePost result postId={} by userId={} success={} likesCount={}", postId, userId, response.isSuccess(), response.getLikesCount());
+        return ResponseEntity.ok(response);
     }
 
     // 8. Comment on a Post

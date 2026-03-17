@@ -40,6 +40,9 @@ public class Post {
 	    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
 	    private List<Comment> comments; // Comments on this post
 
+	    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+	    private List<Like> likes; // Likes on this post (persisted as entity)
+
 	    @Column(nullable = false)
 	    private LocalDateTime createdAt;
 

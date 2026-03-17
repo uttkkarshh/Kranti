@@ -15,8 +15,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 @Entity
@@ -42,12 +40,7 @@ public class Event {
 	    private Set<UserProfile> hosts; // Users hosting this event
 	    @Column(columnDefinition = "POINT")
 	    private Point location; // Location of the event (latitude and longitude)
-	    @ManyToMany
-	    @JoinTable(
-	        name = "event_followers",
-	        joinColumns = @JoinColumn(name = "event_id"),
-	        inverseJoinColumns = @JoinColumn(name = "user_id")
-	    )
+	    @ManyToMany(mappedBy = "followedEvents")
 	    private Set<UserProfile> followers; // Users following this event
 
 	    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)

@@ -45,28 +45,34 @@ public class FollowerService {
         FollowRequest followRequest = followRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Follow request not found"));
 
-        if (followRequest.getStatus() == FollowRequest.RequestStatus.PENDING) {
-            followRequest.setStatus(FollowRequest.RequestStatus.ACCEPTED);
-            followRequestRepository.save(followRequest);
-
-            // Create a follower relationship
-            Follower follower = new Follower();
-            follower.setFollower(followRequest.getSender());
-            follower.setFollowing(followRequest.getReceiver());
-            follower.setFollowDate(LocalDateTime.now());
-
-            followerRepository.save(follower);
+        if (followRequest.getStatus() != FollowRequest.RequestStatus.PENDING) {
+            // Already handled (ACCEPTED/REJECTED) - treat as no-op
+            return;
         }
+
+        followRequest.setStatus(FollowRequest.RequestStatus.ACCEPTED);
+        followRequestRepository.save(followRequest);
+
+        // Create a follower relationship
+        Follower follower = new Follower();
+        follower.setFollower(followRequest.getSender());
+        follower.setFollowing(followRequest.getReceiver());
+        follower.setFollowDate(LocalDateTime.now());
+
+        followerRepository.save(follower);
     }
 
     public void rejectFollowRequest(Long requestId) {
         FollowRequest followRequest = followRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Follow request not found"));
 
-        if (followRequest.getStatus() == FollowRequest.RequestStatus.PENDING) {
-            followRequest.setStatus(FollowRequest.RequestStatus.REJECTED);
-            followRequestRepository.save(followRequest);
+        if (followRequest.getStatus() != FollowRequest.RequestStatus.PENDING) {
+            // Already handled - no-op
+            return;
         }
+
+        followRequest.setStatus(FollowRequest.RequestStatus.REJECTED);
+        followRequestRepository.save(followRequest);
     }
 
     public List<UserDto> getFollowers(Long userId) {
@@ -79,31 +85,11 @@ public class FollowerService {
         		.map(follow->UserMapper.toDto(follow.getFollowing())).collect(Collectors.toList());
         
     }
-    public void approveFollowRequest(Long userId, Long followerId) {
-        FollowRequest followRequest = followRequestRepository
-            .findById(followerId)
-            .orElseThrow(() -> new ResourceNotFoundException("Follow request not found."));
 
-        // Update the status to ACCEPTED
-        followRequest.setStatus(FollowRequest.RequestStatus.ACCEPTED);
-        followRequestRepository.save(followRequest);
-
-        // Add the follower to the Follower table
-        Follower follower = new Follower();
-        follower.setFollower(followRequest.getSender());
-        follower.setFollowing(followRequest.getReceiver());
-        follower.setFollowDate(LocalDateTime.now());
-        followerRepository.save(follower);
-    }
-
-    public void rejectFollowRequest(Long userId, Long followerId) {
-        FollowRequest followRequest = followRequestRepository
-            .findBySenderIdAndReceiverId(followerId, userId)
-            .orElseThrow(() -> new ResourceNotFoundException("Follow request not found."));
-
-        // Update the status to REJECTED
-        followRequest.setStatus(FollowRequest.RequestStatus.REJECTED);
-        followRequestRepository.save(followRequest);
+    // Helper to fetch the FollowRequest entity for controllers to perform authorization checks
+    public FollowRequest getFollowRequest(Long requestId) {
+        return followRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Follow request not found"));
     }
 
 	public  List<FollowRequestDTO> getRequest(Long userId) {
